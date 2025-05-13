@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environments
+.env
+.venv
+venv/
+env/
+ENV/
+
+# IDEs and editors
+.idea/
+.vscode/
+
+trained_models/
+prepared_data_multi/
+knowledge_base/
+crypto_analysis_project.egg-info/
+
+# Logs (nếu bạn tạo thư mục logs)
+logs/
+*.log

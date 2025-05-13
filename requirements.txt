@@ -1,0 +1,36 @@
+# --- Core Data Science & Machine Learning ---
+pandas>=2.0,<3.0  
+numpy>=1.25,<2.0
+scikit-learn>=1.3,<1.7
+tensorflow>=2.15,<2.20 
+matplotlib>=3.7,<3.11
+
+# --- Database ---
+SQLAlchemy>=2.0,<2.1
+psycopg2-binary>=2.9,<3.0 # Cho PostgreSQL
+
+# --- API Backend ---
+fastapi>=0.110,<0.116
+uvicorn[standard]>=0.29,<0.35 # Bao gồm uvicorn, httptools, websockets
+
+# --- LLM & RAG ---
+langchain>=0.1,<0.4 
+langchain-google-genai>=1.0,<2.2 # Cho Gemini
+openai>=1.0,<1.80
+
+chromadb>=0.4,<0.7
+sentence-transformers>=2.0,<5.0 
+pypdf>=4.0,<5.6 
+
+# --- News & Sentiment ---
+requests>=2.30,<2.33 
+python-dotenv>=1.0,<1.2 
+vaderSentiment>=3.3,<3.4 
+
+# --- Frontend ---
+streamlit>=1.30,<1.46
+plotly>=5.15,<6.1 
+
+# --- Yahoo Finance ---
+yfinance>=0.2,<0.3
+

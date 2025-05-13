@@ -1,0 +1,5 @@
+setup.py
+crypto_analysis_project.egg-info/PKG-INFO
+crypto_analysis_project.egg-info/SOURCES.txt
+crypto_analysis_project.egg-info/dependency_links.txt
+crypto_analysis_project.egg-info/top_level.txt
