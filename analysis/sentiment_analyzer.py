@@ -37,27 +37,40 @@ class CryptoNews(Base):
     sentiment_score = Column(Float, nullable=True)
     sentiment_label = Column(String, nullable=True)
 
+def column_exists(connection, table_name, column_name, schema='public'):
+    query = text("""
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = :schema
+              AND table_name = :table_name
+              AND column_name = :column_name
+        );
+    """)
+    result = connection.execute(query, {"schema": schema, "table_name": table_name, "column_name": column_name})
+    return result.scalar_one()
+
 def add_sentiment_columns_to_db(table_name="crypto_news"):
     """Thêm cột sentiment_score và sentiment_label vào bảng nếu chưa có."""
     with engine.connect() as connection:
+        trans = connection.begin() # Bắt đầu transaction
         try:
-            connection.execute(text(f"ALTER TABLE {table_name} ADD COLUMN sentiment_score FLOAT;"))
-            print(f"Đã thêm cột 'sentiment_score' vào bảng {table_name}.")
-        except Exception as e:
-            if "already exists" in str(e).lower() or "duplicate column" in str(e).lower():
+            if not column_exists(connection, table_name, "sentiment_score"):
+                connection.execute(text(f"ALTER TABLE {table_name} ADD COLUMN sentiment_score FLOAT;"))
+                print(f"Đã thêm cột 'sentiment_score' vào bảng {table_name}.") # Sẽ chạy trong môi trường UTF-8
+            else:
                 print(f"Cột 'sentiment_score' đã tồn tại trong bảng {table_name}.")
+
+            if not column_exists(connection, table_name, "sentiment_label"):
+                connection.execute(text(f"ALTER TABLE {table_name} ADD COLUMN sentiment_label VARCHAR(50);"))
+                print(f"Đã thêm cột 'sentiment_label' vào bảng {table_name}.")
             else:
-                print(f"Lỗi khi thêm cột 'sentiment_score': {e}")
-        
-        try:
-            connection.execute(text(f"ALTER TABLE {table_name} ADD COLUMN sentiment_label VARCHAR(50);")) 
-            print(f"Đã thêm cột 'sentiment_label' vào bảng {table_name}.")
-        except Exception as e:
-            if "already exists" in str(e).lower() or "duplicate column" in str(e).lower():
                 print(f"Cột 'sentiment_label' đã tồn tại trong bảng {table_name}.")
-            else:
-                print(f"Lỗi khi thêm cột 'sentiment_label': {e}")
-        connection.commit()
+            
+            trans.commit() # Commit transaction
+        except Exception as e:
+            trans.rollback() # Rollback nếu có lỗi
+            print(f"Lỗi khi kiểm tra/thêm cột sentiment: {e}")
 
 
 def process_news_sentiment(limit=100, table_name="crypto_news"):

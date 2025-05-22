@@ -9,6 +9,8 @@ import numpy as np
 import os
 import pickle
 from sqlalchemy import text
+from typing import List
+
 
 from llm_rag.rag_handler import ask_question as ask_rag_question, ingest_data_to_vectorstore as ingest_rag_data
 from core.db_connect import engine
@@ -247,3 +249,39 @@ async def get_latest_news(limit: int = 20, page: int = 1, ticker: Optional[str] 
     except Exception as e:
         print(f"Lỗi khi truy vấn tin tức: {e}")
         raise HTTPException(status_code=500, detail="Lỗi máy chủ khi lấy tin tức.")
+    
+
+class RealtimeTick(BaseModel):
+    symbol: str
+    price: float
+    timestamp: datetime # Sẽ là đối tượng datetime
+    source: Optional[str] = None
+
+@app.get("/crypto/{ticker_symbol}/realtime-ticks", response_model=List[RealtimeTick])
+async def get_realtime_price_ticks(ticker_symbol: str, minutes_history: int = 60):
+    """
+    Lấy các tick giá real-time cho một ticker trong X phút vừa qua.
+    Mặc định là 60 phút.
+    """
+    if minutes_history <= 0 or minutes_history > 120: # Giới hạn hợp lý
+        raise HTTPException(status_code=400, detail="minutes_history phải từ 1 đến 120.")
+
+    query = text("""
+        SELECT symbol, price, timestamp, source
+        FROM realtime_price_ticks
+        WHERE symbol = :symbol AND timestamp >= NOW() - MAKE_INTERVAL(mins => :mins_hist)
+        ORDER BY timestamp ASC
+    """)
+    # ticker_symbol có thể là BTC-USD, cần khớp với DB
+    try:
+        with engine.connect() as connection: # Sử dụng engine từ core.db_connect
+            result = connection.execute(query, {"symbol": ticker_symbol, "mins_hist": minutes_history})
+            ticks_data = result.fetchall()
+        
+        columns = result.keys()
+        ticks_list = [dict(zip(columns, row)) for row in ticks_data]
+        
+        return ticks_list
+    except Exception as e:
+        print(f"Lỗi khi lấy realtime ticks cho {ticker_symbol}: {e}")
+        raise HTTPException(status_code=500, detail="Lỗi máy chủ khi lấy dữ liệu real-time.")

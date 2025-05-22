@@ -34,3 +34,4 @@ plotly>=5.15,<6.1
 # --- Yahoo Finance ---
 yfinance>=0.2,<0.3
 
+schedule==1.2.2

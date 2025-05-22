@@ -84,7 +84,7 @@ RAG_LLM_MODEL_NAME_GOOGLE = "gemini-2.0-flash"
 # --- Cấu hình API & Dashboard ---
 API_BASE_URL = "http://127.0.0.1:8000"
 DEFAULT_PREDICTION_HORIZON_DISPLAY = 15
-AVAILABLE_PREDICTION_HORIZONS_DISPLAY = [15] # or [15, 30, 60] 
+AVAILABLE_PREDICTION_HORIZONS_DISPLAY = [15] 
 
 # --- Các hàm tiện ích chung ---
 def get_db_table_name(ticker_symbol: str) -> str:
