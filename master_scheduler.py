@@ -69,47 +69,24 @@ def run_script_module(module_path_from_root, log_file_name, script_args=None):
         print(f"[{current_time_str_exc}] SCHEDULER: Exception while trying to run {module_path_from_root}: {e}")
 
 
-# --- Định nghĩa các Tác vụ Lập lịch ---
+# --- Định nghĩa Lập lịch ---
 def task_update_price_data():
-    """Tác vụ cập nhật dữ liệu giá OHLCV."""
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] SCHEDULER: Triggering Price Data Update...")
-
     run_script_module("data_processing.update_daily", "scheduler_update_price.log")
 
 def task_fetch_news_data():
-    """Tác vụ lấy tin tức mới."""
-
     run_script_module("news_handling.news_fetcher", "scheduler_fetch_news.log")
 
 def task_analyze_sentiment():
-    """Tác vụ phân tích sentiment cho tin tức mới."""
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] SCHEDULER: Triggering Sentiment Analysis...")
-    # Giả sử sentiment_analyzer.py nằm trong analysis
     run_script_module("analysis.sentiment_analyzer", "scheduler_analyze_sentiment.log")
 
 def task_retrain_prediction_models():
-    """Tác vụ huấn luyện lại các mô hình dự đoán (tác vụ nặng)."""
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] SCHEDULER: Triggering Prediction Models Retraining...")
     # Giả sử train_predict_models.py nằm trong prediction
     run_script_module("prediction.train_predict_models", "scheduler_retrain_models.log")
 
-
-# --- Lập lịch cho các Tác vụ ---
-print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Master Scheduler started. Press Ctrl+C to exit.")
-
-# Cập nhật dữ liệu giá mỗi ngày vào lúc 01:05 sáng
-schedule.every().day.at("00:05").do(task_update_price_data).tag("data_update", "daily")
-
-# Lấy tin tức 
-schedule.every(15).minutes.do(task_fetch_news_data).tag("news_fetch", "minutely")
-# Phân tích sentiment 
-schedule.every(15).minutes.do(task_analyze_sentiment).tag("sentiment_analysis", "minutely")
-
-# Huấn luyện lại mô hình vào 02:00 sáng Chủ nhật hàng tuần
-schedule.every().sunday.at("02:00").do(task_retrain_prediction_models).tag("model_retrain", "weekly")
-
 def task_cleanup_old_realtime_ticks():
-
     current_time_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     print(f"[{current_time_str}] SCHEDULER: Triggering Realtime Data Cleanup (older than 30 minutes)...")
     log_file_name = "scheduler_cleanup_realtime.log"
@@ -132,9 +109,24 @@ def task_cleanup_old_realtime_ticks():
         with open(log_full_path, "a", encoding="utf-8") as logfile:
             logfile.write(error_message + "\n")
 
+# --- Lập lịch cho các Tác vụ ---
+print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Master Scheduler started. Press Ctrl+C to exit.")
+
+# Cập nhật dữ liệu giá mỗi ngày vào lúc 01:05 sáng
+schedule.every().day.at("00:05").do(task_update_price_data).tag("data_update", "daily")
+
+# Lấy tin tức 
+schedule.every(15).minutes.do(task_fetch_news_data).tag("news_fetch", "minutely")
+# Phân tích sentiment 
+schedule.every(15).minutes.do(task_analyze_sentiment).tag("sentiment_analysis", "minutely")
+
+# Huấn luyện lại mô hình vào Chủ nhật hàng tuần
+schedule.every().sunday.at("02:00").do(task_retrain_prediction_models).tag("model_retrain", "weekly")
+
+schedule.every(20).minutes.do(task_cleanup_old_realtime_ticks).tag("cleanup", "minutely")
+
 # --- Vòng lặp chính của Scheduler ---
 if __name__ == "__main__":
-
     try:
         while True:
             schedule.run_pending()
@@ -145,5 +137,3 @@ if __name__ == "__main__":
         print(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Master Scheduler encountered an unhandled exception: {e}")
     finally:
         print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Master Scheduler shutting down.")
-
-    schedule.every(5).minutes.do(task_cleanup_old_realtime_ticks).tag("cleanup", "minutely")
