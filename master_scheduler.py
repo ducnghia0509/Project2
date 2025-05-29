@@ -113,24 +113,25 @@ def task_cleanup_old_realtime_ticks():
 print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Master Scheduler started. Press Ctrl+C to exit.")
 
 # Cập nhật dữ liệu giá mỗi ngày vào lúc 01:05 sáng
-schedule.every().day.at("00:05").do(task_update_price_data).tag("data_update", "daily")
+# schedule.every().day.at("12:28").do(task_update_price_data).tag("data_update", "daily")
+schedule.every(30).seconds.do(task_update_price_data).tag("data_update", "minutely")
 
 # Lấy tin tức 
-schedule.every(15).minutes.do(task_fetch_news_data).tag("news_fetch", "minutely")
+schedule.every(5).minutes.do(task_fetch_news_data).tag("news_fetch", "minutely")
 # Phân tích sentiment 
-schedule.every(15).minutes.do(task_analyze_sentiment).tag("sentiment_analysis", "minutely")
+schedule.every(5).minutes.do(task_analyze_sentiment).tag("sentiment_analysis", "minutely")
 
 # Huấn luyện lại mô hình vào Chủ nhật hàng tuần
 schedule.every().sunday.at("02:00").do(task_retrain_prediction_models).tag("model_retrain", "weekly")
-
-schedule.every(20).minutes.do(task_cleanup_old_realtime_ticks).tag("cleanup", "minutely")
+# Xóa các dữ liệu real-time cũ ở DB
+schedule.every(10).minutes.do(task_cleanup_old_realtime_ticks).tag("cleanup", "minutely")
 
 # --- Vòng lặp chính của Scheduler ---
 if __name__ == "__main__":
     try:
         while True:
             schedule.run_pending()
-            time.sleep(600)
+            time.sleep(80)
     except KeyboardInterrupt:
         print(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Master Scheduler stopped by user.")
     except Exception as e:

@@ -102,3 +102,9 @@ Giao diện Swagger UI tại http://127.0.0.1:8000/docs
 streamlit run app/app_dashboard.py
  
 Dashboard sẽ chạy tại http://localhost:8501
+
+#### Terminal 3: Chạy lấy dữ liệu WebSocket từ sàn Binance
+python realtime_collector.py
+
+#### Terminal 4: Chạy tất cả các schedule (re-train, re-analysis, re-getnews,...)
+python master_scheduler.py
