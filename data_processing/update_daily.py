@@ -13,8 +13,8 @@ except ImportError:
 from core.db_connect import engine
 from core.config import (
     DEFAULT_CRYPTO_TICKERS,
-    UPDATE_DEFAULT_START_DATE, # Sử dụng hằng số này từ config
-    get_db_table_name # Sử dụng hàm helper từ config
+    UPDATE_DEFAULT_START_DATE,
+    get_db_table_name 
 )
 
 # --- Cấu hình Logging ---
@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 def main_update_logic():
     logger.info("--- Bắt đầu quá trình cập nhật dữ liệu giá ---")
 
-    # Lấy danh sách tickers và ngày bắt đầu mặc định từ config
     tickers_to_update = DEFAULT_CRYPTO_TICKERS
     default_start_date_for_new_table = UPDATE_DEFAULT_START_DATE
 
@@ -82,7 +81,7 @@ def main_update_logic():
 
             end_date_str = date.today().strftime('%Y-%m-%d')
 
-            if start_date_str > end_date_str: # Sửa: > thay vì >= vì end_date_str của yfinance là exclusive
+            if start_date_str > end_date_str: 
                 logger.info(f"Dữ liệu cho {ticker} đã được cập nhật đến ngày hôm qua ({latest_date_in_db}). Không cần lấy dữ liệu mới.")
                 no_new_data.append(ticker)
                 continue
@@ -104,7 +103,7 @@ def main_update_logic():
                     data['date'] = pd.to_datetime(data['date']).dt.date
                     original_count = len(data)
                     # Chỉ giữ lại những ngày LỚN HƠN ngày cuối cùng trong DB
-                    data = data[data['date'] > latest_date_in_db].copy() # Thêm .copy() để tránh SettingWithCopyWarning
+                    data = data[data['date'] > latest_date_in_db].copy() 
                     if len(data) < original_count:
                         logger.info(f"Đã loại bỏ {original_count - len(data)} hàng trùng ngày hoặc cũ hơn với dữ liệu hiện có.")
 
@@ -122,7 +121,7 @@ def main_update_logic():
                             if_exists='append',
                             index=False,
                             method='multi',
-                            chunksize=1000 # Tăng chunksize có thể nhanh hơn cho insert lớn
+                            chunksize=1000 
                         )
                     logger.info(f"==> Nối dữ liệu mới cho {ticker} vào '{table_name}' thành công.")
                     successful_updates.append(ticker)

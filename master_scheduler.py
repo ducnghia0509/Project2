@@ -10,13 +10,13 @@ from core.db_connect import engine
 from sqlalchemy import text
 # --- Cấu hình Đường dẫn ---
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-PYTHON_EXECUTABLE = sys.executable # Đường dẫn đến python đang chạy scheduler này
+PYTHON_EXECUTABLE = sys.executable
 
 LOGS_DIR = os.path.join(PROJECT_ROOT, "logs")
 if not os.path.exists(LOGS_DIR):
     os.makedirs(LOGS_DIR)
 
-# --- Hàm tiện ích để chạy script con ---
+# --- chạy script con ---
 def run_script_module(module_path_from_root, log_file_name, script_args=None):
     log_full_path = os.path.join(LOGS_DIR, log_file_name)
     command = [PYTHON_EXECUTABLE, "-m", module_path_from_root]

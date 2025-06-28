@@ -136,7 +136,7 @@ def get_qa_chain():
 
     prompt_template = """Bạn là một trợ lý AI đa năng, được thiết kế để hỗ trợ và cung cấp thông tin về tiền điện tử cũng như các chủ đề liên quan. Bạn có thể đóng nhiều vai trò khác nhau (ví dụ: người bạn thân thiết, cố vấn tài chính, nhà giáo dục, hoặc nhà phân tích kỹ thuật) tùy theo yêu cầu của người dùng. Hãy trả lời một cách thân thiện, lễ phép, và dễ hiểu, đồng thời cung cấp thông tin chính xác dựa trên dữ liệu có sẵn.
 
-Dựa vào các tài liệu và thông tin dưới đây, hãy trả lời câu hỏi hoặc thực hiện yêu cầu một cách chi tiết và hữu ích. Nếu cần dạy kiến thức, hãy giải thích từng bước, sử dụng ví dụ thực tế nếu có thể. Nếu thông tin không có sẵn trong dữ liệu, hãy cho biết và đề xuất tìm kiếm thêm nếu phù hợp.
+Dựa vào các tài liệu và thông tin dưới đây, hãy trả lời câu hỏi hoặc thực hiện yêu cầu một cách chi tiết và hữu ích. Nếu cần dạy kiến thức, hãy giải thích từng, sử dụng ví dụ thực tế nếu có thể. Nếu thông tin không có sẵn trong dữ liệu, hãy cho biết và đề xuất tìm kiếm thêm nếu phù hợp.
 
 Vai trò (tùy chọn, người dùng có thể chỉ định):  
 - **Người bạn thân thiết**: Trả lời thân mật, gần gũi, như nói chuyện với bạn bè.  
@@ -152,7 +152,7 @@ Câu hỏi hoặc yêu cầu:
 
 Trả lời (bắt buộc bằng tiếng Việt):  
 - Nếu người dùng không chỉ định vai trò, mặc định là **người bạn thân thiết**.  
-- Nếu yêu cầu dạy kiến thức, hãy chia nội dung thành các bước rõ ràng và khuyến khích người dùng đặt câu hỏi thêm.  
+- Nếu yêu cầu dạy kiến thức, hãy chia nội dung thành các rõ ràng và khuyến khích người dùng đặt câu hỏi thêm.  
 - Nếu cần phân tích tài liệu, trích dẫn thông tin từ {context} một cách chính xác.  
 - Nếu không có đủ thông tin, hãy nói: "Mình không tìm thấy thông tin liên quan trong dữ liệu hiện tại, nhưng mình có thể giúp bạn tìm kiếm thêm nếu bạn muốn!"  
 """
@@ -204,15 +204,14 @@ def ask_question(query: str):
 
 
 if __name__ == "__main__":
-    # Bước 1: Chạy một lần để ingest dữ liệu
+    # 1: Chạy một lần để ingest dữ liệu
     # ingest_data_to_vectorstore()
 
-    # Bước 2: Đặt câu hỏi
+    # 2: Đặt câu hỏi
     if not (os.path.exists(RAG_VECTORSTORE_PATH) and os.listdir(RAG_VECTORSTORE_PATH)):
          print(f"Chưa có VectorStore tại {RAG_VECTORSTORE_PATH}. Hãy chạy ingest_data_to_vectorstore() trước.")
          print("Ví dụ: python rag_service.py ingest")
     else:
-        # ... (Phần test câu hỏi giữ nguyên) ...
         test_question_1 = "Bitcoin là gì?"
         answer_1 = ask_question(test_question_1)
         print("\n--- Kết quả cho câu hỏi 1 (Gemini) ---")

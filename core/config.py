@@ -40,7 +40,7 @@ PREDICTION_TARGET_TICKERS = [
     "ARB-USD", "OP-USD", "MATIC-USD", "STRK-USD",  # Layer 2
     # DeFi
     "UNI-USD", "AAVE-USD", "MKR-USD", "CRV-USD", "SNX-USD",
-    # Stablecoins (có thể dùng để theo dõi)
+    # Stablecoins 
     "USDT-USD", "USDC-USD",
     # Khác
     "DOGE-USD", "ADA-USD", "TRX-USD",

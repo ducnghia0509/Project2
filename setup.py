@@ -7,6 +7,5 @@ setup(
     author_email='nghiabui5981@gmail.com', 
     description='Project2',
     packages=find_packages(exclude=['tests*', 'knowledge_base*', 'prepared_data_multi*', 'trained_models*', 'logs*']),
-
     python_requires='>=3.9',
 )

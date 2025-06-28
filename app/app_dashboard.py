@@ -11,7 +11,7 @@ from core.config import (
     DEFAULT_CRYPTO_TICKERS,
     PREDICTION_TARGET_TICKERS
 )
-import time # Vẫn cần cho nút refresh và có thể là auto-refresh sau này
+import time 
 
 st.set_page_config(layout="wide", page_title="Crypto Dashboard Thông Minh")
 
@@ -31,7 +31,7 @@ def fetch_realtime_ticks_api(ticker, minutes=30):
 
         df = pd.DataFrame(data)
         if not df.empty and 'timestamp' in df.columns:
-            df['timestamp_original_str'] = df['timestamp'] # Lưu lại để debug
+            df['timestamp_original_str'] = df['timestamp'] 
             
             parsed_timestamps = []
             for ts_str in df['timestamp_original_str']:
@@ -98,11 +98,11 @@ def plot_realtime_data(df_rt, ticker):
         latest_price_val = df_rt['price'].iloc[-1]
         latest_timestamp_val = df_rt['timestamp'].iloc[-1] # Đây là đối tượng datetime
 
-        # Định dạng lại timestamp để hiển thị (ví dụ: HH:MM:SS)
-        if pd.notna(latest_timestamp_val): # Kiểm tra xem có phải NaT không
+        # Định dạng lại timestamp để hiển thị
+        if pd.notna(latest_timestamp_val): 
             try:
                 latest_timestamp_str = latest_timestamp_val.strftime('%H:%M:%S')
-            except AttributeError: # Nếu latest_timestamp_val không phải là datetime object hợp lệ
+            except AttributeError: 
                  latest_timestamp_str = "Lỗi giờ"
 
 
@@ -139,11 +139,11 @@ def fetch_future_predictions(ticker, horizon):
         st.error(f"Lỗi khi lấy dữ liệu dự đoán cho {ticker} (horizon {horizon}): {e}")
         return None
 
-def plot_price_and_ta(df, ticker): # Giữ nguyên như code bạn đã cung cấp, đã khá tốt
+def plot_price_and_ta(df, ticker): 
     if df.empty:
         st.warning(f"Không có dữ liệu để vẽ biểu đồ cho {ticker}.")
         return
-    # ... (Toàn bộ code plot_price_and_ta của bạn ở đây) ...
+    df.columns = [col.lower() for col in df.columns]
     fig = go.Figure()
     fig.add_trace(go.Candlestick(x=df['date'], open=df['open'], high=df['high'], low=df['low'], close=df['close'], name='Giá OHLC'))
     if 'sma_20' in df.columns and df['sma_20'].notna().any():
@@ -184,11 +184,10 @@ def plot_price_and_ta(df, ticker): # Giữ nguyên như code bạn đã cung c�
         st.plotly_chart(fig_macd, use_container_width=True)
 
 
-def plot_future_predictions(predictions_data, df_history): # Giữ nguyên như code bạn đã cung cấp
+def plot_future_predictions(predictions_data, df_history): 
     if predictions_data is None or not predictions_data.get('predictions'):
         st.warning("Không có dữ liệu dự đoán để hiển thị.")
         return
-    # ... (Toàn bộ code plot_future_predictions của bạn ở đây) ...
     ticker = predictions_data['ticker']
     preds = predictions_data['predictions']
     if not preds: 
@@ -215,8 +214,7 @@ def plot_future_predictions(predictions_data, df_history): # Giữ nguyên như 
     st.dataframe(pd.DataFrame({'Ngày Dự Kiến': future_dates, 'Giá Dự Đoán (USD)': df_preds['predicted_price']}))
 
 
-def ask_rag_api(question_text): # Giữ nguyên
-    # ... (code của bạn) ...
+def ask_rag_api(question_text): 
     if not question_text.strip(): return {"error": "Câu hỏi không được để trống."}
     try:
         response = requests.post(f"{API_BASE_URL}/rag/ask", json={"question": question_text})
@@ -224,15 +222,13 @@ def ask_rag_api(question_text): # Giữ nguyên
     except requests.exceptions.RequestException as e: st.error(f"Lỗi khi gọi API RAG: {str(e)}"); return {"error": f"Lỗi API: {str(e)}"}
     except Exception as e: st.error(f"Lỗi không xác định khi hỏi RAG: {str(e)}"); return {"error": f"Lỗi không xác định: {str(e)}"}
 
-def trigger_ingest_api(): # Giữ nguyên
-    # ... (code của bạn) ...
+def trigger_ingest_api():
     try:
         response = requests.post(f"{API_BASE_URL}/rag/ingest-data"); response.raise_for_status(); return response.json()
     except requests.exceptions.RequestException as e: st.error(f"Lỗi khi kích hoạt ingest: {str(e)}"); return None
     except Exception as e:  st.error(f"Lỗi không xác định khi kích hoạt ingest: {str(e)}"); return None
 
-def fetch_api_news(ticker=None, limit=10, page=1): # Giữ nguyên
-    # ... (code của bạn) ...
+def fetch_api_news(ticker=None, limit=10, page=1): 
     try:
         url = f"{API_BASE_URL}/news/latest?limit={limit}&page={page}"
         if ticker: url += f"&ticker={ticker}"
@@ -246,7 +242,7 @@ st.title("📊 Dashboard Phân tích Crypto Thông Minh")
 
 display_tickers_sidebar = sorted(list(set(DEFAULT_CRYPTO_TICKERS + PREDICTION_TARGET_TICKERS)))
 selected_ticker_global = st.sidebar.selectbox(
-    "Chọn Ticker Crypto:", # Đổi tên label một chút
+    "Chọn Ticker Crypto:",
     display_tickers_sidebar,
     index=display_tickers_sidebar.index("BTC-USD") if "BTC-USD" in display_tickers_sidebar else 0
 )
@@ -261,7 +257,7 @@ if st.sidebar.button("Nạp lại/Cập nhật Cơ sở Tri thức Trợ lý"):
         else:
             st.sidebar.error("Không thể gửi yêu cầu nạp lại hoặc không nhận được phản hồi hợp lệ.")
 
-tab_titles = ["⏱️ Real-time", "📈 Lịch sử & TA", "🔮 Dự đoán", "💬 Hỏi Trợ lý", "📰 Tin tức"] # Rút gọn tên tab
+tab_titles = ["⏱️ Real-time", "📈 Lịch sử & TA", "🔮 Dự đoán", "💬 Hỏi Trợ lý", "📰 Tin tức"]
 tabs = st.tabs(tab_titles)
 
 # Tab Real-time
@@ -270,21 +266,21 @@ with tabs[0]:
     st.caption("Dữ liệu từ Binance WebSocket, cập nhật sau vài giây. Hiển thị 30 phút gần nhất.")
 
     default_rt_index = 0
-    if selected_ticker_global in REALTIME_SUPPORTED_TICKERS_APP: # Sử dụng biến mới
+    if selected_ticker_global in REALTIME_SUPPORTED_TICKERS_APP: 
         try:
             default_rt_index = REALTIME_SUPPORTED_TICKERS_APP.index(selected_ticker_global)
         except ValueError: pass
 
     selected_ticker_rt = st.selectbox(
         "Chọn Ticker Real-time:",
-        REALTIME_SUPPORTED_TICKERS_APP, # Sử dụng biến mới
+        REALTIME_SUPPORTED_TICKERS_APP, 
         index=default_rt_index,
         key="selectbox_realtime_ticker"
     )
 
     chart_placeholder_rt = st.empty()
 
-    def update_realtime_display(ticker_to_plot): # Đổi tên hàm để rõ ràng hơn
+    def update_realtime_display(ticker_to_plot): 
         df_rt_data = fetch_realtime_ticks_api(ticker_to_plot, minutes=30)
         if not df_rt_data.empty:
             fig_rt = plot_realtime_data(df_rt_data, ticker_to_plot)
@@ -321,7 +317,6 @@ with tabs[2]:
     if selected_ticker_global:
         if selected_ticker_global in PREDICTION_TARGET_TICKERS:
             st.subheader(f"Dự đoán Giá Đóng Cửa: {selected_ticker_global.upper()}")
-            # ... (Code chọn horizon và nút lấy dự đoán như bạn đã có) ...
             if len(AVAILABLE_PREDICTION_HORIZONS_DISPLAY) == 1:
                 selected_horizon = AVAILABLE_PREDICTION_HORIZONS_DISPLAY[0]
             else:
@@ -349,7 +344,6 @@ with tabs[2]:
 # Tab Hỏi Trợ lý Crypto
 with tabs[3]:
     st.subheader("💬 Hỏi Trợ lý Crypto")
-    # ... (Toàn bộ code RAG chat của bạn ở đây, đã khá tốt) ...
     st.info("Tôi là trợ lý Crypto, tôi có thể giúp bạn hiểu và áp dụng tốt các kiến thức tiền ảo! Hãy thách thức tôi!!!")
     if "messages" not in st.session_state: st.session_state.messages = []
     for message in st.session_state.messages:

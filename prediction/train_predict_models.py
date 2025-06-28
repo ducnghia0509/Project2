@@ -5,7 +5,7 @@ import pickle
 import os
 import matplotlib.pyplot as plt
 import shutil
-import gc # Import gc ở đầu file
+import gc 
 
 from sqlalchemy.exc import SQLAlchemyError
 from sklearn.preprocessing import MinMaxScaler
@@ -18,7 +18,6 @@ from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 
-# Import các hàm tiện ích và cấu hình
 from .prediction_utils import inverse_transform_predictions
 from core.config import (
     PREDICTION_TARGET_TICKERS, PREDICTION_OUTPUT_LENGTHS,

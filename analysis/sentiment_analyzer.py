@@ -57,7 +57,7 @@ def add_sentiment_columns_to_db(table_name="crypto_news"):
         try:
             if not column_exists(connection, table_name, "sentiment_score"):
                 connection.execute(text(f"ALTER TABLE {table_name} ADD COLUMN sentiment_score FLOAT;"))
-                print(f"Đã thêm cột 'sentiment_score' vào bảng {table_name}.") # Sẽ chạy trong môi trường UTF-8
+                print(f"Đã thêm cột 'sentiment_score' vào bảng {table_name}.") 
             else:
                 print(f"Cột 'sentiment_score' đã tồn tại trong bảng {table_name}.")
 

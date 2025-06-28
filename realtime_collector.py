@@ -6,16 +6,14 @@ import os
 from datetime import datetime, timezone
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-# Giả sử bạn đã có cấu hình DB trong core.config
-from core.config import DB_CONN_STR, DEFAULT_CRYPTO_TICKERS # Lấy danh sách ticker từ config
+from core.config import DB_CONN_STR, DEFAULT_CRYPTO_TICKERS
 
 # Cấu hình
-SYMBOLS_TO_TRACK = [ticker.replace("-", "").upper() for ticker in DEFAULT_CRYPTO_TICKERS if "USD" in ticker or "USDT" in ticker] # Ví dụ: BTCUSDT, ETHUSDT
+SYMBOLS_TO_TRACK = [ticker.replace("-", "").upper() for ticker in DEFAULT_CRYPTO_TICKERS if "USD" in ticker or "USDT" in ticker] 
 print(f"[RealtimeCollector DEBUG] DEFAULT_CRYPTO_TICKERS: {DEFAULT_CRYPTO_TICKERS}")
 print(f"[RealtimeCollector DEBUG] SYMBOLS_TO_TRACK_FROM_CONFIG after processing: {SYMBOLS_TO_TRACK}")
-
-# Hoặc để chắc chắn, tạm thời hardcode để test:
-SYMBOLS_TO_TRACK = ["BTCUSDT", "ETHUSDT", "BNBUSDT"] # <<-- THÊM BNBUSDT VÀO ĐÂY ĐỂ TEST
+# test
+SYMBOLS_TO_TRACK = ["BTCUSDT", "ETHUSDT", "BNBUSDT"] 
 print(f"[RealtimeCollector DEBUG] SYMBOLS_TO_TRACK (hardcoded for test): {SYMBOLS_TO_TRACK}")
 BINANCE_WS_BASE_URL = "wss://stream.binance.com:9443/ws/"
 
@@ -50,12 +48,11 @@ async def save_tick_to_db(symbol, price, timestamp_ms, source="binance_ws"):
 
     try:
         app_symbol = symbol.replace("USDT", "-USD").replace("BUSD","-USD")
-        if "USD" not in app_symbol and len(app_symbol) > 3 and app_symbol.isalnum(): # Thêm isalnum để tránh lỗi với ký tự lạ
+        if "USD" not in app_symbol and len(app_symbol) > 3 and app_symbol.isalnum():
              app_symbol = app_symbol[:3] + "-" + app_symbol[3:]
 
         dt_object_utc = datetime.fromtimestamp(timestamp_ms / 1000.0, tz=timezone.utc)
 
-        # Dòng log quan trọng nhất để xem dữ liệu trước khi INSERT
         print(f"[RealtimeCollector DEBUG SaveAttempt] AppSymbol='{app_symbol}', OriginalBinanceSymbol='{symbol}', Price='{price}', TimestampUTC='{dt_object_utc}', Source='{source}'")
 
         query = text("""
@@ -63,13 +60,13 @@ async def save_tick_to_db(symbol, price, timestamp_ms, source="binance_ws"):
             VALUES (:symbol, :price, :timestamp, :source)
         """)
         db_session.execute(query, {
-            "symbol": app_symbol, # Đây là giá trị sẽ được chèn vào cột 'symbol'
+            "symbol": app_symbol, 
             "price": float(price),
-            "timestamp": dt_object_utc, # PostgreSQL sẽ xử lý TIMESTAMPTZ này
+            "timestamp": dt_object_utc, 
             "source": source
         })
         db_session.commit()
-        print(f"[RealtimeCollector INFO SaveSuccess] Saved: AppSymbol='{app_symbol}', Price='{price}'") # Log khi thành công
+        print(f"[RealtimeCollector INFO SaveSuccess] Saved: AppSymbol='{app_symbol}', Price='{price}'") 
 
     except Exception as e:
         db_session.rollback()

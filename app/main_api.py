@@ -1,6 +1,6 @@
 # app/main_api.py
 from fastapi import FastAPI, HTTPException, BackgroundTasks
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import pandas as pd
 from datetime import date, datetime
 from typing import List, Optional
@@ -46,9 +46,10 @@ class PriceDataPoint(BaseModel):
     MACD_12_26_9: Optional[float] = None
     MACDh_12_26_9: Optional[float] = None
     MACDs_12_26_9: Optional[float] = None
-    BBL_20_2_0: Optional[float] = None
-    BBM_20_2_0: Optional[float] = None
-    BBU_20_2_0: Optional[float] = None
+
+    bbl: Optional[float] = Field(None, alias="BBL_20_2.0")
+    bbm: Optional[float] = Field(None, alias="BBM_20_2.0")
+    bbu: Optional[float] = Field(None, alias="BBU_20_2.0")
 
 class PredictionPoint(BaseModel):
     date_index: int
@@ -254,7 +255,7 @@ async def get_latest_news(limit: int = 20, page: int = 1, ticker: Optional[str] 
 class RealtimeTick(BaseModel):
     symbol: str
     price: float
-    timestamp: datetime # Sẽ là đối tượng datetime
+    timestamp: datetime 
     source: Optional[str] = None
 
 @app.get("/crypto/{ticker_symbol}/realtime-ticks", response_model=List[RealtimeTick])
@@ -263,7 +264,7 @@ async def get_realtime_price_ticks(ticker_symbol: str, minutes_history: int = 60
     Lấy các tick giá real-time cho một ticker trong X phút vừa qua.
     Mặc định là 60 phút.
     """
-    if minutes_history <= 0 or minutes_history > 120: # Giới hạn hợp lý
+    if minutes_history <= 0 or minutes_history > 120:
         raise HTTPException(status_code=400, detail="minutes_history phải từ 1 đến 120.")
 
     query = text("""
@@ -272,9 +273,8 @@ async def get_realtime_price_ticks(ticker_symbol: str, minutes_history: int = 60
         WHERE symbol = :symbol AND timestamp >= NOW() - MAKE_INTERVAL(mins => :mins_hist)
         ORDER BY timestamp ASC
     """)
-    # ticker_symbol có thể là BTC-USD, cần khớp với DB
     try:
-        with engine.connect() as connection: # Sử dụng engine từ core.db_connect
+        with engine.connect() as connection: 
             result = connection.execute(query, {"symbol": ticker_symbol, "mins_hist": minutes_history})
             ticks_data = result.fetchall()
         

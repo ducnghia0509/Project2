@@ -79,7 +79,6 @@ def save_news_to_db(news_articles, table_name="crypto_news"):
         return -1 
     df_news = df_selected 
 
-    # Xử lý cột 'published_at' sang datetime
     if 'published_at' in df_news.columns:
         try:
             df_news['published_at'] = pd.to_datetime(df_news['published_at'], errors='coerce')
@@ -104,7 +103,7 @@ def save_news_to_db(news_articles, table_name="crypto_news"):
         def extract_currency_codes(currency_list):
             if isinstance(currency_list, list):
                 return ", ".join(sorted(list(set(c.get('code', '') for c in currency_list if isinstance(c, dict) and c.get('code')))))
-            return None # Hoặc '' nếu bạn muốn chuỗi rỗng
+            return None 
         df_news['related_currencies'] = df_news['related_currencies'].apply(extract_currency_codes)
     else:
         print("Cảnh báo: Không có cột 'related_currencies'.")

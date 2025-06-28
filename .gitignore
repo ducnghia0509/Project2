@@ -27,3 +27,5 @@ report/
 # Logs (nếu bạn tạo thư mục logs)
 logs/
 *.log
+
+setup.py
