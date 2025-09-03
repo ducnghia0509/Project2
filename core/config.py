@@ -73,10 +73,11 @@ PATIENCE_REDUCE_LR = 5
 # --- Cấu hình RAG & LLM ---
 RAG_DOCUMENTS_PATH = "knowledge_base/documents"
 RAG_VECTORSTORE_PATH = "knowledge_base/vectorstore_chroma"
-RAG_CHUNK_SIZE = 500
-RAG_CHUNK_OVERLAP = 50
+RAG_CHUNK_SIZE = 8000
+RAG_CHUNK_OVERLAP = 100
 RAG_EMBEDDING_PROVIDER = "HuggingFace"
-RAG_EMBEDDING_MODEL_NAME_HF = "all-MiniLM-L6-v2"
+# RAG_EMBEDDING_MODEL_NAME_HF = "sentence-transformers/multilingual-e5-large"
+RAG_EMBEDDING_MODEL_NAME_HF = "BAAI/bge-m3"
 RAG_EMBEDDING_MODEL_NAME_GOOGLE = "models/embedding-001" 
 RAG_LLM_PROVIDER = "Google"
 RAG_LLM_MODEL_NAME_GOOGLE = "gemini-2.0-flash"

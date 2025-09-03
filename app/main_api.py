@@ -207,12 +207,39 @@ async def predict_future_prices(ticker_symbol: str, horizon: int = 30):
 async def ask_knowledge_base(query: RagQuery):
     if not query.question.strip():
         raise HTTPException(status_code=400, detail="Câu hỏi không được để trống.")
+    
     try:
-        result = ask_rag_question(query.question)
-        return result
+        # Gọi hàm RAG chính của bạn (ask_question từ rag_handler.py)
+        # Hàm này đã được thiết kế để trả về dictionary với 'question', 'answer', 'sources' và 'error'
+        rag_result_dict = ask_rag_question(query.question)
+        
+        # Chuyển đổi list các dictionary trong 'sources' thành list các RagSource Pydantic models
+        sources_list = []
+        if rag_result_dict.get("sources"):
+            for src_dict in rag_result_dict["sources"]:
+                sources_list.append(RagSource(
+                    content_preview=src_dict.get("content_preview"),
+                    metadata=src_dict.get("metadata")
+                ))
+
+        # Tạo đối tượng RagResponse từ kết quả trả về
+        response_model = RagResponse(
+            question=rag_result_dict.get("question", query.question), # Đảm bảo có câu hỏi
+            answer=rag_result_dict.get("answer"),
+            sources=sources_list, # Gán list RagSource đã chuyển đổi
+            error=rag_result_dict.get("error")
+        )
+        return response_model
+        
     except Exception as e:
         print(f"Lỗi trong endpoint RAG /ask: {e}")
-        raise HTTPException(status_code=500, detail=f"Lỗi xử lý RAG: {str(e)}")
+        # Trong trường hợp có lỗi hệ thống, trả về RagResponse với thông báo lỗi
+        return RagResponse(
+            question=query.question,
+            answer=None,
+            sources=None,
+            error=f"Lỗi xử lý RAG: {str(e)}"
+        )
 
 @app.post("/rag/ingest-data", status_code=202)
 async def trigger_rag_ingestion(background_tasks: BackgroundTasks):

@@ -68,7 +68,6 @@ def run_script_module(module_path_from_root, log_file_name, script_args=None):
             logfile.write("--- End Exception ---\n\n")
         print(f"[{current_time_str_exc}] SCHEDULER: Exception while trying to run {module_path_from_root}: {e}")
 
-
 # --- Định nghĩa Lập lịch ---
 def task_update_price_data():
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] SCHEDULER: Triggering Price Data Update...")
@@ -113,7 +112,7 @@ def task_cleanup_old_realtime_ticks():
 print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Master Scheduler started. Press Ctrl+C to exit.")
 
 # Cập nhật dữ liệu giá mỗi ngày vào lúc 01:05 sáng
-# schedule.every().day.at("12:28").do(task_update_price_data).tag("data_update", "daily")
+# schedule.every().day.at("01:05").do(task_update_price_data).tag("data_update", "daily")
 schedule.every(30).seconds.do(task_update_price_data).tag("data_update", "minutely")
 
 # Lấy tin tức 

@@ -3,7 +3,7 @@ import os
 import shutil 
 from dotenv import load_dotenv
 
-from langchain_community.document_loaders import PyPDFLoader, TextLoader, DirectoryLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, DirectoryLoader, PDFPlumberLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
@@ -50,7 +50,7 @@ def get_llm():
             model=RAG_LLM_MODEL_NAME_GOOGLE,
             google_api_key=CFG_GOOGLE_API_KEY,
             temperature=0.2,
-            convert_system_message_to_human=True
+            # convert_system_message_to_human=True
         )
     else:
         raise ValueError(f"Unsupported LLM provider: {RAG_LLM_PROVIDER}")
@@ -61,7 +61,7 @@ def load_and_split_documents(docs_path=RAG_DOCUMENTS_PATH):
     loader = DirectoryLoader(
         docs_path,
         glob="**/*[.txt,.pdf]",
-        loader_cls=lambda path: PyPDFLoader(path) if path.endswith(".pdf") else TextLoader(path, **text_loader_kwargs),
+        loader_cls=lambda path: PDFPlumberLoader(path) if path.endswith(".pdf") else TextLoader(path, **text_loader_kwargs),
         recursive=True,
         show_progress=True,
         use_multithreading=True
@@ -83,7 +83,10 @@ def load_and_split_documents(docs_path=RAG_DOCUMENTS_PATH):
 def create_or_load_vectorstore(split_docs, embeddings, persist_dir=RAG_VECTORSTORE_PATH): 
     if os.path.exists(persist_dir) and os.listdir(persist_dir):
         print(f"Đang tải VectorStore từ: {persist_dir}")
-        vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
+        vectorstore = Chroma(persist_directory=RAG_VECTORSTORE_PATH, embedding_function=embeddings_model)
+        sample_docs = vectorstore.similarity_search("bitcoin adoption", k=5)
+        for doc in sample_docs:
+            print(f"Sample doc: {doc.page_content[:200]}... Metadata: {doc.metadata}")
     else:
         if not split_docs:
             print(f"Không có documents để tạo VectorStore mới tại {persist_dir}. Vui lòng chạy ingest_data() trước.")
@@ -92,7 +95,7 @@ def create_or_load_vectorstore(split_docs, embeddings, persist_dir=RAG_VECTORSTO
         vectorstore = Chroma.from_documents(
             documents=split_docs,
             embedding=embeddings,
-            persist_directory=persist_dir
+            persist_directory=persist_dir,
         )
     return vectorstore
 
@@ -131,30 +134,19 @@ def get_qa_chain():
 
     retriever = _vectorstore_cache.as_retriever(
         search_type="similarity",
-        search_kwargs={"k": 3}
+        search_kwargs={"k": 10}
     )
 
-    prompt_template = """Bạn là một trợ lý AI đa năng, được thiết kế để hỗ trợ và cung cấp thông tin về tiền điện tử cũng như các chủ đề liên quan. Bạn có thể đóng nhiều vai trò khác nhau (ví dụ: người bạn thân thiết, cố vấn tài chính, nhà giáo dục, hoặc nhà phân tích kỹ thuật) tùy theo yêu cầu của người dùng. Hãy trả lời một cách thân thiện, lễ phép, và dễ hiểu, đồng thời cung cấp thông tin chính xác dựa trên dữ liệu có sẵn.
+    prompt_template = """Bạn là một chuyên gia về tiền điện tử, có nhiệm vụ cung cấp thông tin chi tiết và chính xác về Bitcoin. 
+    Chỉ dựa trên dữ liệu được cung cấp, hãy trả lời câu hỏi một cách rõ ràng, ngắn gọn và bằng tiếng Việt. 
 
-Dựa vào các tài liệu và thông tin dưới đây, hãy trả lời câu hỏi hoặc thực hiện yêu cầu một cách chi tiết và hữu ích. Nếu cần dạy kiến thức, hãy giải thích từng, sử dụng ví dụ thực tế nếu có thể. Nếu thông tin không có sẵn trong dữ liệu, hãy cho biết và đề xuất tìm kiếm thêm nếu phù hợp.
-
-Vai trò (tùy chọn, người dùng có thể chỉ định):  
-- **Người bạn thân thiết**: Trả lời thân mật, gần gũi, như nói chuyện với bạn bè.  
-- **Cố vấn tài chính**: Cung cấp lời khuyên mang tính định hướng, nhấn mạnh xu hướng và phân tích cơ bản.  
-- **Nhà giáo dục**: Dạy kiến thức từ cơ bản đến nâng cao, sử dụng ví dụ và hướng dẫn chi tiết.  
-- **Nhà phân tích kỹ thuật**: Tập trung vào dữ liệu, số liệu, và phân tích chuyên sâu từ tài liệu.  
-
-Thông tin bạn có:  
+Dữ liệu:  
 {context}  
 
-Câu hỏi hoặc yêu cầu:  
+Câu hỏi:  
 {question}  
 
-Trả lời (bắt buộc bằng tiếng Việt):  
-- Nếu người dùng không chỉ định vai trò, mặc định là **người bạn thân thiết**.  
-- Nếu yêu cầu dạy kiến thức, hãy chia nội dung thành các rõ ràng và khuyến khích người dùng đặt câu hỏi thêm.  
-- Nếu cần phân tích tài liệu, trích dẫn thông tin từ {context} một cách chính xác.  
-- Nếu không có đủ thông tin, hãy nói: "Mình không tìm thấy thông tin liên quan trong dữ liệu hiện tại, nhưng mình có thể giúp bạn tìm kiếm thêm nếu bạn muốn!"  
+Trả lời (bằng tiếng Việt):  
 """
     QA_CHAIN_PROMPT = PromptTemplate.from_template(prompt_template)
 
@@ -176,7 +168,7 @@ def ask_question(query: str):
 
     print(f"\nĐang xử lý câu hỏi với Gemini: {query}")
     try:
-        result = qa_chain({"query": query})
+        result = qa_chain.invoke({"query": query})
         answer = result.get("result")
         source_documents = result.get("source_documents")
 
@@ -210,9 +202,8 @@ if __name__ == "__main__":
     # 2: Đặt câu hỏi
     if not (os.path.exists(RAG_VECTORSTORE_PATH) and os.listdir(RAG_VECTORSTORE_PATH)):
          print(f"Chưa có VectorStore tại {RAG_VECTORSTORE_PATH}. Hãy chạy ingest_data_to_vectorstore() trước.")
-         print("Ví dụ: python rag_service.py ingest")
     else:
-        test_question_1 = "Bitcoin là gì?"
+        test_question_1 = "Bitcoin do ai tạo ra?"
         answer_1 = ask_question(test_question_1)
         print("\n--- Kết quả cho câu hỏi 1 (Gemini) ---")
         print(f"Câu hỏi: {answer_1.get('question')}")
@@ -222,7 +213,7 @@ if __name__ == "__main__":
             for i, src in enumerate(answer_1.get('sources')):
                 print(f"  Nguồn {i+1}: {src.get('metadata', {}).get('source', 'N/A')} - Preview: {src.get('content_preview')}")
 
-        test_question_2 = "Proof of Work hoạt động như thế nào trong Bitcoin?"
+        test_question_2 = "Làm sao để tạo ra một loại tiền điện tử kiểu như ETH, hay bitcoin?"
         answer_2 = ask_question(test_question_2)
         print("\n--- Kết quả cho câu hỏi 2 (Gemini) ---")
         print(f"Câu hỏi: {answer_2.get('question')}")
